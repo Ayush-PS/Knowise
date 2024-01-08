@@ -1,28 +1,33 @@
 // LinkedCharts.js
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
-  BarChart, Bar, CartesianGrid, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer,
-  PieChart, Pie, Cell,
-} from 'recharts';
-import axios from 'axios';
-
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+  Tooltip,
+} from "recharts";
+import axios from "axios";
+import classes from "./Charts.module.css";
+import { random } from "lodash";
 const LinkedCharts = () => {
   const [countryData, setCountryData] = useState([]);
   const [selectedCountry, setSelectedCountry] = useState(null);
   const [percentageData, setPercentageData] = useState([]);
+  const [areaPopulationData, setAreaPopulationData] = useState([]);
+  const [activeIndex, setActiveIndex] = useState(null);
 
   useEffect(() => {
     const fetchCountryData = async () => {
       try {
-        console.log('Fetching country data...');
-        // Fetch country data (top 5 countries by population) from Restcountries API
+        console.log("Fetching country data...");
         const response = await axios.get(
-          'https://restcountries.com/v2/all?fields=name,population,area'
+          "https://restcountries.com/v2/all?fields=name,population,area"
         );
 
         const countries = response.data
           .filter((country) => country.population && country.area)
-          .slice(0, 9)
+          .slice(9, 18)
           .map((country) => ({
             countryName: country.name,
             population: country.population,
@@ -30,9 +35,9 @@ const LinkedCharts = () => {
           }));
 
         setCountryData(countries);
-        console.log('Country data fetched:', countries);
+        console.log("Country data fetched:", countries);
       } catch (error) {
-        console.error('Error fetching country data:', error);
+        console.error("Error fetching country data:", error);
       }
     };
 
@@ -40,9 +45,14 @@ const LinkedCharts = () => {
   }, []);
 
   useEffect(() => {
-    // Calculate percentage data for both charts
-    const totalPopulation = countryData.reduce((sum, country) => sum + country.population, 0);
-    const totalArea = countryData.reduce((sum, country) => sum + country.area, 0);
+    const totalPopulation = countryData.reduce(
+      (sum, country) => sum + country.population,
+      0
+    );
+    const totalArea = countryData.reduce(
+      (sum, country) => sum + country.area,
+      0
+    );
 
     const percentageCountries = countryData.map((country) => ({
       countryName: country.countryName,
@@ -53,16 +63,65 @@ const LinkedCharts = () => {
     setPercentageData(percentageCountries);
   }, [countryData]);
 
-  const handlePieClick = (entry) => {
-    // Fetch area data upon clicking the pie chart
-    setSelectedCountry(entry.countryName);
+  const handleMainPieClick = (event) => {
+    setSelectedCountry(event.countryName);
+    setActiveIndex(event.activeIndex);
+
+    const selectedCountryData = countryData.find(
+      (country) => country.countryName === event.countryName
+    );
+
+    if (selectedCountryData) {
+      setAreaPopulationData([
+        { name: "Population", value: selectedCountryData.population },
+        { name: "Area", value: selectedCountryData.area },
+      ]);
+    }
   };
 
-  const COLORS = ['#8884d8', '#82ca9d', '#ffc658', '#ff7f50', '#c71585'];
+  const COLORS = [
+    "#e64cc2",
+    "#4c94e6",
+    "#ffc658",
+    "#ff7850",
+    "#c71585",
+    "#1abc9c",
+    "#3498db",
+    "#f39c12",
+    "#2ecc71",
+    "#e74c3c",
+    "#9b59b6",
+    "#34495e",
+    "#d35400",
+    "#27ae60",
+    "#2980b9",
+    "#8e44ad",
+    "#c0392b",
+    "#7f8c8d",
+    "#e67e22",
+  ];
+  
+  const renderTooltipContent = (props) => {
+    const { payload } = props;
+
+    if (!payload || payload.length === 0) {
+      return null;
+    }
+
+    const data = payload[0].payload;
+    return (
+      <div className="tooltip" style={{ borderRadius: "10%", backgroundColor: "rgb(230,230,230,0.7)", padding: "0.7rem" }}>
+        <p>{`Country: ${data.countryName}`}</p>
+        <p>{`Population: ${data.populationPercentage.toFixed(2)}%`}</p>
+        <p>{`Area: ${data.areaPercentage.toFixed(2)}%`}</p>
+      </div>
+    );
+  };
 
   return (
-    <div>
-      <ResponsiveContainer width="100%" height={700}>
+    <div className={classes.charts}>
+      <ResponsiveContainer width="100%" height={400}>
+        <h5> Populatation percentages </h5>
         <PieChart>
           <Pie
             data={percentageData}
@@ -71,42 +130,81 @@ const LinkedCharts = () => {
             cy="50%"
             outerRadius={150}
             fill="#8884d8"
-            label
-            onClick={(event) => handlePieClick(event)}
+            onClick={(event) => handleMainPieClick(event)}
+            label={({ cx, cy, midAngle, innerRadius, outerRadius, percent, index }) => {
+              const radius = innerRadius + (outerRadius - innerRadius) * 1.2;
+              const x = cx + radius * Math.cos(-midAngle * (Math.PI / 180));
+              const y = cy + radius * Math.sin(-midAngle * (Math.PI / 180));
+              return (
+                <text
+                  x={x}
+                  y={y}
+                  fill={COLORS[index % COLORS.length]}
+                  textAnchor={x > cx ? "start" : "end"}
+                  dominantBaseline="central"
+                  fontSize={12}
+                  fontWeight="bold"
+                >
+                  {`${percentageData[index].countryName} ${(
+                    percent * 100
+                  ).toFixed(2)}%`}
+                </text>
+              );
+            }}
+            activeIndex={activeIndex}
           >
             {percentageData.map((entry, index) => (
-              <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+              <Cell
+                key={`cell-${index}`}
+                fill={COLORS[index % COLORS.length]}
+                className="custom-cell"
+              />
             ))}
           </Pie>
-          <Tooltip />
+          <Tooltip content={renderTooltipContent} />
         </PieChart>
       </ResponsiveContainer>
 
       {selectedCountry && (
-        <ResponsiveContainer width="50%" height={300}>
-          <BarChart
-            data={percentageData}
-            margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-          >
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="countryName" />
-            <YAxis yAxisId="left" label={{ value: 'Population Percentage', angle: -90, position: 'insideLeft' }} />
-            <YAxis yAxisId="right" orientation="right" label={{ value: 'Area Percentage', angle: 90, position: 'insideRight' }} />
-            <Tooltip />
-            <Legend />
-            <Bar
-              dataKey="populationPercentage"
+        <ResponsiveContainer width="100%" height={400}>
+      <h5> {selectedCountry} Population vs Area </h5>
+          <PieChart>
+            <Pie
+              data={areaPopulationData}
+              dataKey="value"
+              cx="50%"
+              cy="50%"
+              outerRadius={150}
               fill="#8884d8"
-              name="Population Percentage"
-              yAxisId="left"
-            />
-            <Bar
-              dataKey="areaPercentage"
-              fill="#82ca9d"
-              name="Area Percentage"
-              yAxisId="right"
-            />
-          </BarChart>
+              label={({ cx, cy, midAngle, innerRadius, outerRadius, percent, index }) => {
+                const radius = innerRadius + (outerRadius - innerRadius) * 1.2;
+                const x = cx + radius * Math.cos(-midAngle * (Math.PI / 180));
+                const y = cy + radius * Math.sin(-midAngle * (Math.PI / 180));
+                return (
+                  <text
+                    x={x}
+                    y={y}
+                    fill={COLORS[index % COLORS.length]}
+                    textAnchor={x > cx ? "start" : "end"}
+                    dominantBaseline="central"
+                    fontSize={12}
+                    fontWeight="bold"
+                  >
+                    {`${areaPopulationData[index].name}`}
+                  </text>
+                );
+              }}
+            >
+              {areaPopulationData.map((entry, index) => (
+                <Cell
+                  key={`cell-${index}`}
+                  fill={COLORS[index+2 % COLORS.length]}
+                  className="custom-cell"
+                />
+              ))}
+            </Pie>
+            <Tooltip />
+          </PieChart>
         </ResponsiveContainer>
       )}
     </div>
