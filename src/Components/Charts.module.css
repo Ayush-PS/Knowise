@@ -27,8 +27,15 @@
   }
   
   @media (max-width: 768px) {
-    .bar-chart {
+    .charts {
+      padding-top: 10vh;
       width: 100%;
+      height: 100vh;
+      display: flex;
+      flex-direction:column;
+      justify-content: space-between;
+      filter: drop-shadow(5px 5px 10px #222222cc);
+      align-items: center;
     }
   }
   
