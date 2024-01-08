@@ -1,7 +1,7 @@
 # LinkedCharts
 
 LinkedCharts is a React application designed to provide an interactive visualization of country data, including population and area, using pie charts.
-
+![image](https://drive.google.com/uc?export=view&id=16OGgq5M4r0nGZRdTOPVMOrxXxcFmIUAP)
 ## Technologies Used
 
 - **React**: A declarative JavaScript library for building user interfaces. It allows the creation of reusable UI components.
