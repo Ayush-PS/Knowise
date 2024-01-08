@@ -1,15 +1,7 @@
-// LinkedCharts.js
 import React, { useState, useEffect } from "react";
-import {
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-  Tooltip,
-} from "recharts";
+import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip } from "recharts";
 import axios from "axios";
 import classes from "./Charts.module.css";
-import { random } from "lodash";
 const LinkedCharts = () => {
   const [countryData, setCountryData] = useState([]);
   const [selectedCountry, setSelectedCountry] = useState(null);
@@ -100,7 +92,7 @@ const LinkedCharts = () => {
     "#7f8c8d",
     "#e67e22",
   ];
-  
+
   const renderTooltipContent = (props) => {
     const { payload } = props;
 
@@ -110,7 +102,14 @@ const LinkedCharts = () => {
 
     const data = payload[0].payload;
     return (
-      <div className="tooltip" style={{ borderRadius: "10%", backgroundColor: "rgb(230,230,230,0.7)", padding: "0.7rem" }}>
+      <div
+        className="tooltip"
+        style={{
+          borderRadius: "10%",
+          backgroundColor: "rgb(230,230,230,0.7)",
+          padding: "0.7rem",
+        }}
+      >
         <p>{`Country: ${data.countryName}`}</p>
         <p>{`Population: ${data.populationPercentage.toFixed(2)}%`}</p>
         <p>{`Area: ${data.areaPercentage.toFixed(2)}%`}</p>
@@ -131,7 +130,15 @@ const LinkedCharts = () => {
             outerRadius={150}
             fill="#8884d8"
             onClick={(event) => handleMainPieClick(event)}
-            label={({ cx, cy, midAngle, innerRadius, outerRadius, percent, index }) => {
+            label={({
+              cx,
+              cy,
+              midAngle,
+              innerRadius,
+              outerRadius,
+              percent,
+              index,
+            }) => {
               const radius = innerRadius + (outerRadius - innerRadius) * 1.2;
               const x = cx + radius * Math.cos(-midAngle * (Math.PI / 180));
               const y = cy + radius * Math.sin(-midAngle * (Math.PI / 180));
@@ -167,7 +174,7 @@ const LinkedCharts = () => {
 
       {selectedCountry && (
         <ResponsiveContainer width="100%" height={400}>
-      <h5> {selectedCountry} Population vs Area </h5>
+          <h5> {selectedCountry} Population vs Area </h5>
           <PieChart>
             <Pie
               data={areaPopulationData}
@@ -176,7 +183,15 @@ const LinkedCharts = () => {
               cy="50%"
               outerRadius={150}
               fill="#8884d8"
-              label={({ cx, cy, midAngle, innerRadius, outerRadius, percent, index }) => {
+              label={({
+                cx,
+                cy,
+                midAngle,
+                innerRadius,
+                outerRadius,
+                percent,
+                index,
+              }) => {
                 const radius = innerRadius + (outerRadius - innerRadius) * 1.2;
                 const x = cx + radius * Math.cos(-midAngle * (Math.PI / 180));
                 const y = cy + radius * Math.sin(-midAngle * (Math.PI / 180));
@@ -198,7 +213,7 @@ const LinkedCharts = () => {
               {areaPopulationData.map((entry, index) => (
                 <Cell
                   key={`cell-${index}`}
-                  fill={COLORS[index+2 % COLORS.length]}
+                  fill={COLORS[index + (2 % COLORS.length)]}
                   className="custom-cell"
                 />
               ))}
